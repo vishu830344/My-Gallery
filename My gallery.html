@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>My Gallery(shot by vishu)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap');
+
+  /* Reset */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: #0f0f1a;
+    color: #eee;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  header {
+    padding: 2rem 1rem;
+    text-align: center;
+    background: linear-gradient(90deg, #6a11cb, #2575fc);
+    box-shadow: 0 4px 20px rgba(106,17,203,0.7);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 2.8rem;
+    letter-spacing: 3px;
+    text-shadow: 0 0 10px #6a11cb, 0 0 20px #2575fc;
+  }
+
+  /* Upload Section */
+  #uploadForm {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+    padding: 1rem 1.5rem;
+    border-radius: 50px;
+    box-shadow: 0 8px 25px rgba(255,75,43,0.7);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 200;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease;
+  }
+  #uploadForm:hover {
+    box-shadow: 0 12px 40px rgba(255,75,43,0.9);
+  }
+  #mediaInput {
+    display: none;
+  }
+  #uploadLabel {
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  #uploadLabel svg {
+    width: 24px;
+    height: 24px;
+    fill: white;
+    filter: drop-shadow(0 0 2px rgba(255,255,255,0.7));
+    transition: transform 0.3s ease;
+  }
+  #uploadForm:hover #uploadLabel svg {
+    transform: rotate(20deg);
+  }
+
+  /* Gallery Grid */
+  #gallery {
+    max-width: 1200px;
+    margin: 6rem auto 3rem;
+    padding: 0 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+  }
+
+  /* Media Card */
+  .media-card {
+    position: relative;
+    background: #1a1a2e;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow:
+      0 4px 15px rgba(106,17,203,0.3),
+      inset 0 0 10px rgba(106,17,203,0.2);
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .media-card:hover {
+    transform: translateY(-12px) rotateX(5deg) rotateY(5deg);
+    box-shadow:
+      0 15px 40px rgba(106,17,203,0.7),
+      inset 0 0 20px rgba(106,17,203,0.4);
+  }
+  .media-card img,
+  .media-card video {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    border-radius: 20px 20px 0 0;
+    transition: transform 0.4s ease;
+  }
+  .media-card:hover img,
+  .media-card:hover video {
+    transform: scale(1.07);
+  }
+
+  /* Buttons Container */
+  .btn-group {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    display: flex;
+    gap: 12px;
+    z-index: 10;
+  }
+
+  /* Like Button */
+  .like-btn {
+    background: rgba(255, 75, 110, 0.85);
+    border: none;
+    padding: 8px 14px;
+    border-radius: 30px;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255,75,110,0.6);
+    transition: background 0.3s ease, color 0.3s ease;
+    user-select: none;
+  }
+  .like-btn:hover {
+    background: #ff4a6e;
+  }
+  .like-btn.liked {
+    background: #ff4a6e;
+    animation: pulse 1.2s infinite;
+  }
+  .like-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    transition: transform 0.3s ease;
+  }
+  .like-btn.liked svg {
+    transform: scale(1.3);
+  }
+
+  /* Delete Button */
+  .delete-btn {
+    background: rgba(255, 0, 0, 0.85);
+    border: none;
+    padding: 8px 14px;
+    border-radius: 30px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255,0,0,0.7);
+    transition: background 0.3s ease;
+    user-select: none;
+  }
+  .delete-btn:hover {
+    background: #cc0000;
+  }
+
+  /* Pulse Animation */
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+
+  /* Lightbox */
+  #lightbox {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(15,15,26,0.95);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    padding: 1rem;
+    animation: fadeIn 0.4s ease forwards;
+  }
+  #lightbox.fadeOut {
+    animation: fadeOut 0.4s ease forwards;
+  }
+  #lightbox img,
+  #lightbox video {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 20px;
+    box-shadow: 0 0 40px #6a11cb;
+  }
+  #lightbox video {
+    outline: none;
+  }
+  #closeLightbox {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 3.5rem;
+    color: #ff416c;
+    cursor: pointer;
+    user-select: none;
+    filter: drop-shadow(0 0 5px #ff416c);
+    transition: color 0.3s ease;
+  }
+  #closeLightbox:hover {
+    color: #ff1e4f;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+  }
+  @keyframes fadeOut {
+    from {opacity: 1;}
+    to {opacity: 0;}
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    #gallery {
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 5rem 1rem 2rem;
+    }
+    .media-card img,
+    .media-card video {
+      height: 140px;
+    }
+    #uploadForm {
+      bottom: 20px;
+      right: 20px;
+      padding: 0.8rem 1.2rem;
+    }
+    #uploadLabel {
+      font-size: 1rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>My Gallery(shot by vishu)</h1>
+</header>
+
+<!-- Floating Upload Button -->
+<section id="uploadForm" aria-label="Upload your photo or video">
+  <input type="file" id="mediaInput" accept="image/*,video/*" />
+  <label for="mediaInput" id="uploadLabel" title="Upload Photo or Video">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M5 20h14v-2H5v2zm7-18L5.33 9h3.67v6h6V9h3.67L12 2z"/>
+    </svg>
+    Upload
+  </label>
+</section>
+
+<section id="gallery" aria-live="polite" aria-label="Media gallery"></section>
+
+<!-- Lightbox -->
+<div id="lightbox" role="dialog" aria-modal="true" aria-label="Full size media view" tabindex="-1">
+  <span id="closeLightbox" role="button" tabindex="0" aria-label="Close full size media">&times;</span>
+  <!-- Media injected here -->
+</div>
+
+<script>
+  const gallery = document.getElementById('gallery');
+  const mediaInput = document.getElementById('mediaInput');
+  const lightbox = document.getElementById('lightbox');
+
+  // Load media from localStorage or start empty
+  // Each item: { type: 'image'|'video', src: base64 string }
+  let mediaItems = JSON.parse(localStorage.getItem('mediaItems')) || [];
+
+  // Load likes from localStorage
+  let likes = JSON.parse(localStorage.getItem('likes')) || {};
+
+  function saveMedia() {
+    localStorage.setItem('mediaItems', JSON.stringify(mediaItems));
+  }
+
+  function saveLikes() {
+    localStorage.setItem('likes', JSON.stringify(likes));
+  }
+
+  function renderGallery() {
+    gallery.innerHTML = '';
+    mediaItems.forEach((item, index) => {
+      const card = document.createElement('div');
+      card.className = 'media-card';
+
+      // Media element
+      if (item.type === 'image') {
+        const img = document.createElement('img');
+        img.src = item.src;
+        img.alt = `Photo ${index + 1}`;
+        img.tabIndex = 0;
+        img.addEventListener('click', () => openLightbox(item));
+        img.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') openLightbox(item);
+        });
+        card.appendChild(img);
+      } else if (item.type === 'video') {
+        const video = document.createElement('video');
+        video.src = item.src;
+        video.muted = true;
+        video.loop = true;
+        video.autoplay = true;
+        video.playsInline = true;
+        video.tabIndex = 0;
+        video.setAttribute('aria-label', `Video ${index + 1}`);
+        video.addEventListener('click', () => openLightbox(item));
+        video.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') openLightbox(item);
+        });
+        card.appendChild(video);
+      }
+
+      // Buttons container
+      const btnGroup = document.createElement('div');
+      btnGroup.className = 'btn-group';
+
+      // Like button
+      const likeBtn = document.createElement('button');
+      likeBtn.className = 'like-btn';
+      if (likes[item.src]) likeBtn.classList.add('liked');
+      likeBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
+          4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 
+          16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 
+          11.54L12 21.35z"/>
+        </svg>
+        ${likes[item.src] || 0}
+      `;
+      likeBtn.setAttribute('aria-label', `Like media ${index + 1}, ${likes[item.src] || 0} likes`);
+      likeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (likes[item.src]) {
+          likes[item.src]++;
+        } else {
+          likes[item.src] = 1;
+        }
+        saveLikes();
+        renderGallery();
+      });
+      btnGroup.appendChild(likeBtn);
+
+      // Delete button
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.setAttribute('aria-label', `Delete media ${index + 1}`);
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm('Are you sure you want to delete this media?')) {
+          if (likes[item.src]) {
+            delete likes[item.src];
+            saveLikes();
+          }
+          mediaItems.splice(index, 1);
+          saveMedia();
+          renderGallery();
+        }
+      });
+      btnGroup.appendChild(deleteBtn);
+
+      card.appendChild(btnGroup);
+      gallery.appendChild(card);
+    });
+  }
+
+  function openLightbox(item) {
+    lightbox.style.display = 'flex';
+    lightbox.classList.remove('fadeOut');
+    lightbox.innerHTML = `<span id="closeLightbox" role="button" tabindex="0" aria-label="Close full size media">&times;</span>`;
+    const closeBtn = lightbox.querySelector('#closeLightbox');
+    closeBtn.addEventListener('click', closeLightboxFunc);
+    closeBtn.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') closeLightboxFunc();
+    });
+
+    if (item.type === 'image') {
+      const img = document.createElement('img');
+      img.src = item.src;
+      img.alt = "Full size photo";
+      lightbox.appendChild(img);
+    } else if (item.type === 'video') {
+      const video = document.createElement('video');
+      video.src = item.src;
+      video.controls = true;
+      video.autoplay = true;
+      video.style.maxWidth = '90vw';
+      video.style.maxHeight = '90vh';
+      video.setAttribute('aria-label', 'Full size video');
+      lightbox.appendChild(video);
+      video.focus();
+    }
+    closeBtn.focus();
+  }
+
+  function closeLightboxFunc() {
+    lightbox.classList.add('fadeOut');
+    setTimeout(() => {
+      lightbox.style.display = 'none';
+      lightbox.innerHTML = '';
+    }, 400);
+  }
+
+  mediaInput.addEventListener('change', () => {
+    const file = mediaInput.files[0];
+    if (!file) return;
+
+    const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      let type = '';
+      if (validImageTypes.includes(file.type)) {
+        type = 'image';
+      } else if (validVideoTypes.includes(file.type)) {
+        type = 'video';
+      } else {
+        alert('Unsupported file type. Please upload an image or video.');
+        mediaInput.value = '';
+        return;
+      }
+      mediaItems.push({ type, src: e.target.result });
+      saveMedia();
+      renderGallery();
+      mediaInput.value = '';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeLightboxFunc();
+  });
+
+  // Initial render
+  renderGallery();
+</script>
+
+</body>
+</html>
